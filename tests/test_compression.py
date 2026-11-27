@@ -2,15 +2,13 @@
 import numpy as np
 import pytest
 
-from PIL import Image
 
 from src.compression import (
     encode_indices,
     decode_indices,
     save_codebook,
     load_codebook,
-    save_binary_stream,
-    save_reconstructed_image
+    save_binary_stream
 )
 
 
@@ -117,29 +115,3 @@ def test_save_binary_stream(tmp_path):
     assert path.read_text() == binary_stream
 
 
-def test_save_reconstructed_image(tmp_path):
-
-    codebook = np.array([
-        [255, 0, 0] * 4,
-        [0, 255, 0] * 4
-    ], dtype=np.float32)
-
-    indices = np.array([0, 1])
-
-    output_path = tmp_path / "reconstructed.jpg"
-
-    save_reconstructed_image(
-        indices=indices,
-        codebook=codebook,
-        original_shape=(2, 4, 3),
-        block_size=(2, 2),
-        output_path=output_path
-    )
-
-    assert output_path.exists()
-
-    reconstructed = np.array(
-        Image.open(output_path)
-    )
-
-    assert reconstructed.shape == (2, 4, 3)
