@@ -3,7 +3,7 @@ import json
 import numpy as np
 
 from pathlib import Path
-from PIL import Image
+
 
 from src.image_processing import load_image, prepare_image
 from src.codebook import generate_codebook, find_nearest_centroids
@@ -125,72 +125,6 @@ def save_binary_stream(
         file.write(binary_stream)
 
 
-def save_reconstructed_image(
-    indices: np.ndarray,
-    codebook: np.ndarray,
-    original_shape: tuple,
-    block_size: tuple,
-    output_path: str | Path
-):
-    """
-    Reconstruct the RGB image using the codebook and indices.
-    """
-
-    height, width, channels = original_shape
-    block_height, block_width = block_size
-
-    padded_height = (
-        (height + block_height - 1) // block_height
-    ) * block_height
-
-    padded_width = (
-        (width + block_width - 1) // block_width
-    ) * block_width
-
-    reconstructed_vectors = codebook[indices]
-
-    reconstructed_blocks = reconstructed_vectors.reshape(
-        -1,
-        block_height,
-        block_width,
-        channels
-    )
-
-    blocks_per_row = padded_width // block_width
-
-    reconstructed_image = reconstructed_blocks.reshape(
-        padded_height // block_height,
-        blocks_per_row,
-        block_height,
-        block_width,
-        channels
-    )
-
-    reconstructed_image = reconstructed_image.transpose(
-        0, 2, 1, 3, 4
-    )
-
-    reconstructed_image = reconstructed_image.reshape(
-        padded_height,
-        padded_width,
-        channels
-    )
-
-    # Remove padding
-    reconstructed_image = reconstructed_image[:height, :width]
-
-    reconstructed_image = np.clip(
-        reconstructed_image,
-        0,
-        255
-    ).astype(np.uint8)
-
-    output_path = Path(output_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    Image.fromarray(reconstructed_image).save(output_path, format="PNG")
-
-
 def compress_image(
     image_path: str | Path,
     block_size: tuple[int, int],
@@ -251,15 +185,6 @@ def compress_image(
         binary_path
     )
 
-    # 9. Reconstruct and save image
-    save_reconstructed_image(
-        indices=indices,
-        codebook=codebook,
-        original_shape=image.shape,
-        block_size=block_size,
-        output_path=reconstructed_path
-    )
-
     # 10. Calculate statistics
     original_size = image.nbytes
 
@@ -292,6 +217,5 @@ def compress_image(
         "num_blocks": len(blocks),
         "codebook_path": str(codebook_path),
         "binary_path": str(binary_path),
-        "reconstructed_path": str(reconstructed_path),
         "mean_squared_error": float(np.mean(distances))
     }
