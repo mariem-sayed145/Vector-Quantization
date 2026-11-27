@@ -10,6 +10,12 @@ def initialize_centroids(
     Initialize centroids using K-Means++.
     """
 
+    if vectors.ndim != 2 or len(vectors) == 0:
+        raise ValueError("Vectors must be a non-empty 2D array.")
+
+    if k < 1 or k > len(vectors):
+        raise ValueError("K must be between 1 and the number of vectors.")
+
     rng = np.random.default_rng(random_state)
 
     n_samples = len(vectors)
@@ -20,8 +26,9 @@ def initialize_centroids(
     )
 
     first_index = rng.integers(n_samples)
-
     centroids[0] = vectors[first_index]
+
+    selected_indices = {first_index}
 
     distances = np.sum(
         (vectors - centroids[0]) ** 2,
@@ -30,12 +37,35 @@ def initialize_centroids(
 
     for i in range(1, k):
 
-        probabilities = distances / distances.sum()
+        total_distance = distances.sum()
 
-        next_index = rng.choice(
-            n_samples,
-            p=probabilities
-        )
+        if total_distance == 0:
+            remaining_indices = [
+                index for index in range(n_samples)
+                if index not in selected_indices
+            ]
+
+            next_index = rng.choice(remaining_indices)
+
+        else:
+            probabilities = distances / total_distance
+
+            next_index = rng.choice(
+                n_samples,
+                p=probabilities
+            )
+
+            # Avoid selecting the same vector again.
+            if next_index in selected_indices:
+                remaining_indices = [
+                    index for index in range(n_samples)
+                    if index not in selected_indices
+                ]
+
+                if remaining_indices:
+                    next_index = rng.choice(remaining_indices)
+
+        selected_indices.add(next_index)
 
         centroids[i] = vectors[next_index]
 
@@ -60,7 +90,7 @@ def find_nearest_centroids(
     Find the nearest centroid for each vector.
 
     Returns:
-        indices and distances.
+        indices and minimum squared distances.
     """
 
     distances = np.sum(
@@ -147,7 +177,7 @@ def generate_codebook(
         random_state
     )
 
-    for _ in range(max_iterations):
+    for iteration in range(max_iterations):
 
         indices, distances = find_nearest_centroids(
             vectors,
