@@ -39,6 +39,7 @@ def initialize_centroids(
 
         total_distance = distances.sum()
 
+<<<<<<< HEAD
         if total_distance == 0:
             remaining_indices = [
                 index for index in range(n_samples)
@@ -66,6 +67,16 @@ def initialize_centroids(
                     next_index = rng.choice(remaining_indices)
 
         selected_indices.add(next_index)
+=======
+    if total_distance == 0:
+        next_index = rng.integers(n_samples)
+    else:
+        probabilities = distances / total_distance
+        next_index = rng.choice(
+            n_samples,
+            p=probabilities
+    )
+>>>>>>> 3993c52aeec8aad932f26622fc39d77734d47623
 
         centroids[i] = vectors[next_index]
 
