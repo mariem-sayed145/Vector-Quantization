@@ -188,11 +188,7 @@ def save_reconstructed_image(
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    Image.fromarray(reconstructed_image).save(
-        output_path,
-        format="JPEG",
-        quality=95
-    )
+    Image.fromarray(reconstructed_image).save(output_path, format="PNG")
 
 
 def compress_image(
@@ -238,7 +234,7 @@ def compress_image(
     # 6. Define output paths
     codebook_path = output_dir / "codebook.json"
     binary_path = output_dir / "compressed.txt"
-    reconstructed_path = output_dir / "reconstructed.jpg"
+    reconstructed_path = output_dir / "reconstructed.png"
 
     # 7. Save codebook and metadata
     save_codebook(
