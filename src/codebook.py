@@ -30,12 +30,16 @@ def initialize_centroids(
 
     for i in range(1, k):
 
-        probabilities = distances / distances.sum()
+        total_distance = distances.sum()
 
+    if total_distance == 0:
+        next_index = rng.integers(n_samples)
+    else:
+        probabilities = distances / total_distance
         next_index = rng.choice(
             n_samples,
             p=probabilities
-        )
+    )
 
         centroids[i] = vectors[next_index]
 
